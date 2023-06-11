@@ -1,0 +1,212 @@
+#+TITLE: Intro to Clerk
+#+AUTHOR: Copenhagen Clojure Meetup
+#+STARTUP: overview latexpreview
+
+* Agenda
+
+- What are notebooks?
+- What is Clerk? How is it different?
+- Basic setup to get started with Clerk
+- Interactive: /showcasing part of the 'official' demo project/
+- A simple but practical use case
+- Interactive: /documentation generation/
+- Potential problems and fixes
+- Discussion?
+
+* What Are Notebooks
+
+- Tools mainly used in data science
+
+  + research data sets
+  + visualize properties about them
+
+- Typical characteristics
+
+  + web/browser based, editing is done inside of the browser window
+  + Interactive (repl-like) programming
+  + pyloglot (python / R / ...)
+
+- A popular notebook solution is *[[https://jupyter.org/][jupyter]]*
+
+  + [[https://noteable.io/blog/jupyter-notebook-alternatives/][several alternatives]] are available
+  + One notable alternative is [[https://nextjournal.com/][Nextjournal]], from the organization with
+    the same name. Nextjournal is also company behind Clerk, an open
+    source local-first notebook tool that is today's topic.
+
+- NOT literate programming
+
+** Typical complaints about notebooks
+
+There are lot of examples of people [[https://www.youtube.com/watch?v=7jiPeIFXb6U][not liking notebooks]] very much.
+
+- Hard to edit in a browser
+- Hard to maintain
+- Easy to create spaghetti code
+  - /it is just prototyping/, or other explanations
+- Research parts are not easy to reuse
+- Out of order evaluation
+
+* What Is Clerk, How Is It Different
+
+A 'local-first' notebook alternative for clojure.
+
+- Use your own editor with full power of clojure and the repl.
+
+  + code navigation
+  + documentation
+  + interactive compilation
+  + refactoring
+  + ...
+
+- Easily keep the project under version control.
+
+** Some principles
+
+- The notebook is still rendered in a browser with all visualization
+  benefits.
+
+  + tables
+  + plotly and [[https://vega.github.io/vega-lite/examples/][vega(light) plots]]
+  + images
+  + dynamic rendering of
+    - hickup
+    - markdown
+    - $\LaTeX$
+  + [[https://github.com/nextjournal/clerk/blob/main/src/nextjournal/clerk/viewer.cljc#L1166][and more]]
+  + custom visualizations can be added
+
+- A clojure namespace is automatically a notebook.
+
+  + All comments are interpreted as markdown.
+  + Clojure code can be shown, hidden, or folded.
+  + Evaluation results can be shown, hidden, or folded.
+
+- Edit the file and save it. The notebook shown in the browser is
+  automatically updated.
+
+- Prose heavy? Opposite is possible. Write markdown with embedded
+  clojure.
+
+* Basic Setup To Get Started
+
+- Take a [[https://github.com/nextjournal/clerk][dependency on]] ~io.github.nextjournal/clerk~ and start a
+  clojure repl.
+
+- Require Clerk in a namespace
+
+  #+begin_src clojure
+    (ns user
+      (:require [nextjournal.clerk :as clerk]))
+  #+end_src
+
+- Launch a browser-connected server (web sockets). E.g.
+
+  #+begin_src clojure
+    (clerk/serve! {:port        6677
+                   :watch-paths ["src" "notebooks"]})
+  #+end_src
+
+- Show a specific notebook. E.g.
+
+  #+begin_src clojure
+    (clerk/show! "notebooks/my-notebook.clj")
+  #+end_src
+
+- Or just start editing a 'watched file' and save it. The notebook is
+  automatically (re-)rendered in the browser.
+
+* Interactive: Parts Of The 'Official' Demo Project
+
+- [[https://github.com/nextjournal/clerk-demo][From the Clerk community]]
+
+- Showcases lots of Clerk features
+
+- /Live interaction: [[https://github.com/nextjournal/clerk-demo/blob/main/notebooks/data_science.clj][data science]]/
+
+* A simple but practical use case
+
+Or how not knowing the purpose of a tool can be beneficial.
+
+** The problem
+
+We are working on a state machine for a traffic control signal.
+
+Internally, the machine uses status-codes.
+
+Translation of status-codes to textual labels and explanations is
+documented as follows, and a 'user story' is implemented by a
+developer.
+
+| status-code | ui-label   | explanation                                 |
+|-------------+------------+---------------------------------------------|
+|         100 | GREEN      | Proceed                                     |
+|         200 | YELLOW     | Stop if possible, otherwise proceed quickly |
+|         300 | RED        | Stop                                        |
+|         301 | RED YELLOW | Prepare to engage                           |
+|         900 | BLINKING   | Out of order                                |
+
+When the system grows and time goes, perhaps ui-labels and
+explanations need to be changed, new status-codes introduced, etc.
+
+These changes might be described in new user stories, but
+documentation might get out-dated.
+
+People working all the time with this part of the software tend to
+communicate 'in numbers', but other need access to good documentation.
+** A Solution
+
+Generate documentation that doesn't lie, from the actual source code.
+
+- Reference Clerk and create a notebook namespace
+
+  + Inside to actual project in the dev folder
+  + Or in a new project that depends on the main project
+
+- Write markdown comments for prose and, more importantly, code to
+  document the actual values used in the main project, e.g. in tabular
+  form
+
+  + Code might need improvements in order to do so, become more
+    declarative in nature
+
+- Use visualizations other than tables when appropriate
+
+- Visualizations might reveal bugs
+
+- Generate static documentation files to share with the organization
+  #+begin_src clojure
+    (clerk/build! {:paths ["notebooks/my-first-notebook.clj"
+                           "notebooks/my-second-notebook.clj"]})
+  #+end_src
+
+* Interactive: Documentation Generation
+
+* Potential problems and fixes
+
+- There is no interactivity in generated documentation (static html
+  files).
+
+- The default amount of rows shown in tables is 20.
+
+- The fix for this problem is just an 'alter-var-root' away.
+
+* Bonus
+
+** slideshows
+
+With an extra dependency on [[https://github.com/nextjournal/clerk-slideshow][io.github.nextjournal/clerk-slideshow]]
+browser based slideshows [[https://github.com/nextjournal/clerk-demo/blob/main/notebooks/slideshow.md][can be created]]. Everything else about Clerk &
+clojure stays the same.
+
+** generic tapped value visualizer
+
+With [[https://github.com/qrthey/clerk-tap][very little effort]] a generic 'tapped value' visualizer can be had,
+accessible from any namespace.
+
+* More Information
+
+- [[https://github.clerk.garden/nextjournal/book-of-clerk/commit/661d11ba878e0c60168d88388888380725ea7421/][Book of Clerk]]
+- [[https://github.clerk.garden/][CLERK.garden]]
+- [[https://clerk.vision/][clerk.vision]]
+
+* Discussion?
